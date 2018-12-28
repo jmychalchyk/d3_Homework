@@ -1,5 +1,5 @@
-var svgWidth = 960;
-var svgHeight = 500;
+var svgWidth = 800;
+var svgHeight = 700;
 
 var margin = {
   top: 20,
@@ -32,13 +32,13 @@ d3.csv("data/data.csv")
         });
 
 var xLinearScale = d3.scaleLinear()
-        .domain([0, d3.max(chartData, d => d.poverty)])
-        .range([height, 0]);
+        .domain([0, d3.max(chartData, d => d.healthcare)])
+        .range([0,height]);
 
 // Create y scale function
 var yLinearScale = d3.scaleLinear()
-  .domain([0, d3.max(chartData, d => d.healthcare)])
-  .range([height, 0]);
+  .domain([8, d3.max(chartData, d => d.poverty)])
+  .range([height, 8]);
 
 // Create initial axis functions
 var bottomAxis = d3.axisBottom(xLinearScale);
@@ -59,26 +59,34 @@ var circlesGroup = chartGroup.selectAll("circle")
   .append("circle")
   .attr("cx", d => xLinearScale(d.healthcare))
   .attr("cy", d => yLinearScale(d.poverty))
-  .attr("r", "15")
-  .attr("fill", "pink")
-  .attr("opacity", ".5");
+  .attr("r", "10")
+  .attr("fill", "navy")
+  .attr("opacity", ".4");
 
-  var toolTip = d3.tip()
-  .attr("class", "tooltip")
-  .offset([80, -60])
-  .html(function(d) {
-    return (`${d.poverty}<br>Healthcare: ${d.healthcare}`);
-  });
+  labelGroup = chartGroup.append("text")
+  .style("text-anchor", "middle")
+  .style("font-size", "10px")
+  .selectAll("tspan")
+  .data(chartData)
+  .enter()
+  .append("tspan")
+  .attr("x", function(d) {return xLinearScale(d.healthcare - 0);})
+  .attr("y", function(d) {return yLinearScale(d.poverty - 0.1);})
+  .text(function(d) {return d.abbr});
 
-  chartGroup.call(toolTip);
+   //Initialize tool tip
+   var toolTip = d3.tip()
+   .attr("class", "tooltip")
+   .offset([0,0])
+   .html(function (d) {return (`${d.state}<br>Poverty: ${d.poverty}<br>Healthcare: ${d.healthcare}`);});
 
-  circlesGroup.on("click", function(data) {
-    toolTip.show(data, this);
-  })
-    // onmouseout event
-    .on("mouseout", function(data, index) {
-      toolTip.hide(data);
-    });
+ //Create tooltip in the chart
+ chartGroup.call(toolTip);
+
+ //Create event listeners to display and hide the tooltip
+ circlesGroup.on("click", function (d) {toolTip.show(d);}).on("mouseout", function (d, i) {toolTip.hide(d);});
+   labelGroup.on("click", function (d) {toolTip.show(d);}).on("mouseout", function (d, i) {toolTip.hide(d);});
+
 
   // Create axes labels
   chartGroup.append("text")
